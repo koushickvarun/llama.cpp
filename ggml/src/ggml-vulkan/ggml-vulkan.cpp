@@ -5368,7 +5368,10 @@ static vk_pipeline ggml_vk_get_dequantize_mul_mat_vec(ggml_backend_vk_context * 
                 dmmv_wg = DMMV_WG_SIZE_LARGE;
             }
         } else {
-            if (m <= 8192 && k >= 1024) {
+            // On NVK the larger workgroup also wins for short rows (k < 1024): e.g. +40%
+            // tg on Qwen2.5-0.5B (k = 896) on a TU117, neutral where k >= 1024 already.
+            const bool nvk = ctx->device->driver_id == vk::DriverId::eMesaNvk;
+            if (m <= 8192 && (k >= 1024 || nvk)) {
                 dmmv_wg = DMMV_WG_SIZE_LARGE;
             }
         }
@@ -5456,7 +5459,10 @@ static vk_pipeline ggml_vk_get_dequantize_mul_mat_vec_id(ggml_backend_vk_context
                 dmmv_wg = DMMV_WG_SIZE_LARGE;
             }
         } else {
-            if (m <= 8192 && k >= 1024) {
+            // On NVK the larger workgroup also wins for short rows (k < 1024): e.g. +40%
+            // tg on Qwen2.5-0.5B (k = 896) on a TU117, neutral where k >= 1024 already.
+            const bool nvk = ctx->device->driver_id == vk::DriverId::eMesaNvk;
+            if (m <= 8192 && (k >= 1024 || nvk)) {
                 dmmv_wg = DMMV_WG_SIZE_LARGE;
             }
         }
